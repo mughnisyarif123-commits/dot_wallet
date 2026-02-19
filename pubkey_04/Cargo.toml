@@ -1,0 +1,13 @@
+[package]
+name = "pubkey_04"
+version = "0.1.7"
+authors = ["muh. mughni syarif"]
+description = "sedang dalam proses pembuatan wallet polkadot"
+categories = ["cryptography", "encoding"]
+edition = "2024"
+rust-version = "1.85.0"
+
+[dependencies]
+sp-core = { version = "39.0.0", default-features = false, features = ["std"] }
+anyhow = "1.0.101"
+qrcode = "0.14.1"
