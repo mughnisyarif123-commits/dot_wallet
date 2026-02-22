@@ -5,6 +5,7 @@ use sp_core::crypto::Ss58AddressFormat;
 use sp_core::hexdisplay::HexDisplay;
 use sp_core::{Pair, crypto::Ss58Codec, sr25519};
 use std::io::{self, Write};
+use hex;
 
 fn main() -> Result<()> {
     println!("╔══════════════════════════════════════════════════╗");
@@ -98,17 +99,23 @@ fn main() -> Result<()> {
                 }
             }
             "3" => {
-                println!("\n--- SIGNER MODE ---");
-                print!(" ➡️ Masukkan Data Transaksi (Hex/Raw): ");
-                io::stdout().flush()?;
-                let mut pesan_raw = String::new();
-                io::stdin().read_line(&mut pesan_raw)?;
-                let pesan = pesan_raw.trim();
-                let signature = current_pair.sign(pesan.as_bytes());
-                let hex_sign = format!("{}", HexDisplay::from(&signature.0));
-                cetak_qr("SIGNATURE QR", &hex_sign)?;
-                println!("Hex Signature:\n{}", hex_sign);
+                println!("\n--- SIGNER MODE (Air-Gapped) ---");
+                print!(" ➡️ Masukkan Data Transaksi dari Nova (Hex): ");
+                io::stdout().flush()?;       
+                let mut input_hex = String::new();
+                io::stdin().read_line(&mut input_hex)?;
+                let input_hex = input_hex.trim().trim_start_matches("0x");
+                match hex::decode(input_hex) {
+                    Ok(payload_bytes) => {                       
+                        let signature = current_pair.sign(&payload_bytes);
+                        let hex_sign = format!("{}", HexDisplay::from(&signature.0));                  
+                        cetak_qr("SIGNATURE QR", &hex_sign)?;
+                        println!("✅ Signature Berhasil Dibuat!");
+                    },
+                    Err(_) => println!("❌ Error: Format Hex tidak valid!"),
+                }
             }
+            
             "4" => {
                 tampilkan_data_ringkas(&current_pair, &current_path);
             }
@@ -128,15 +135,15 @@ fn cetak_qr(label: &str, data: &str) -> Result<()> {
 fn tampilkan_data_ringkas(pair: &sr25519::Pair, path: &str) {
     let alamat_subx = pair.public().to_ss58check();
     let alamat_hex = format!("0x{}", HexDisplay::from(&pair.public().0));
-    let alamat_dot = pair
+    let almt_dot = pair
         .public()
         .to_ss58check_with_version(Ss58AddressFormat::custom(0));
-    let alamat_nova = format!("substrate:{}:{}", alamat_dot, alamat_hex);
+    let almt_nova = format!("substrate:{}:{}", almt_dot, alamat_hex);
     println!("\n╔══════════════════ INFO AKUN ═════════════════════╗");
     println!("║ Path: {:<42} ║", path);
     println!("║ Hex:  {:<42} ║", alamat_hex);
     println!("║ Subx: {:<42} ║", alamat_subx);
-    println!("║ DOT:  {:<42} ║", alamat_dot);
-    println!("║ Nova: {:<42} ║", alamat_nova);
+    println!("║ DOT:  {:<42} ║", almt_dot);
+    println!("║ Nova: {:<42} ║", almt_nova);
     println!("╚══════════════════════════════════════════════════╝");
 }
